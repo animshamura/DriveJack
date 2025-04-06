@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DriveJack</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-sky-100 to-slate-200 min-h-screen flex items-center justify-center px-4">
+  <div class="w-full max-w-xl bg-white rounded-2xl shadow-xl p-8 space-y-6">
+    <h1 class="text-3xl font-bold text-center text-blue-800">DriveJack</h1>
+
+    <!-- Dropdown for area selection -->
+    <form id="analyzeForm" class="flex gap-4">
+      <select 
+        id="areaSelect" 
+        class="flex-1 border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400"
+        required
+      >
+        <option value="" disabled selected>Select Area</option>
+        <option value="Banani" data-lat="23.8103" data-lon="90.4149">Banani</option>
+        <option value="Dhanmondi" data-lat="23.7465" data-lon="90.3798">Dhanmondi</option>
+        <option value="Gulshan" data-lat="23.7957" data-lon="90.4210">Gulshan</option>
+        <option value="Badda" data-lat="23.8105" data-lon="90.4200">Badda</option>
+        <option value="Motijheel" data-lat="23.7464" data-lon="90.3889">Motijheel</option>
+        <option value="Tejgaon" data-lat="23.8014" data-lon="90.4085">Tejgaon</option>
+        <option value="Mirpur" data-lat="23.8105" data-lon="90.3578">Mirpur</option>
+        <option value="Khilgaon" data-lat="23.7744" data-lon="90.4309">Khilgaon</option>
+        <option value="Jatrabari" data-lat="23.7264" data-lon="90.4178">Jatrabari</option>
+        <option value="Uttara" data-lat="23.8767" data-lon="90.3981">Uttara</option>
+        <option value="Mohakhali" data-lat="23.8103" data-lon="90.4089">Mohakhali</option>
+        <option value="Shahbagh" data-lat="23.7417" data-lon="90.3999">Shahbagh</option>
+        <option value="Bashundhara" data-lat="23.8102" data-lon="90.4247">Bashundhara</option>
+        <option value="Ramna" data-lat="23.7490" data-lon="90.3940">Ramna</option>
+      </select>
+      <button 
+        type="submit" 
+        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-all"
+      >
+        Analyze
+      </button>
+    </form>
+
+    <div id="resultCard" class="hidden border border-gray-200 rounded-xl p-6 shadow-md bg-white transition-all">
+      <h2 class="text-xl font-semibold mb-4 text-gray-700">Result for <span id="areaName" class="font-bold text-blue-600"></span></h2>
+      <p class="text-gray-600"><strong>Vehicle Count:</strong> <span id="vehicleCount"></span></p>
+      <p class="text-gray-600"><strong>Traffic Jam:</strong> <span id="trafficJam"></span></p>
+      <p class="text-gray-600"><strong>Road Status:</strong> <span id="roadStatus" class="font-medium"></span></p>
+    </div>
+
+    <div id="loading" class="hidden text-center text-blue-600 font-medium">Analyzing satellite data...</div>
+  </div>
+
+  <script>
+    const form = document.getElementById("analyzeForm");
+    const areaSelect = document.getElementById("areaSelect");
+    const resultCard = document.getElementById("resultCard");
+    const loading = document.getElementById("loading");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const selectedOption = areaSelect.selectedOptions[0];
+      const area = selectedOption.value;
+      const lat = parseFloat(selectedOption.getAttribute("data-lat"));
+      const lon = parseFloat(selectedOption.getAttribute("data-lon"));
+
+      if (!area || isNaN(lat) || isNaN(lon)) return;
+
+      resultCard.classList.add("hidden");
+      loading.classList.remove("hidden");
+
+      try {
+        // Send latitude and longitude to backend
+        const response = await fetch(`http://localhost:8000/analyze?lat=${lat}&lon=${lon}`);
+        const data = await response.json();
+
+        // Populate the result card with data
+        document.getElementById("areaName").textContent = area;
+        document.getElementById("vehicleCount").textContent = data.vehicle_count;
+        document.getElementById("trafficJam").textContent = data.traffic_jam ? "Yes" : "No";
+        document.getElementById("roadStatus").textContent = data.road_status;
+
+        loading.classList.add("hidden");
+        resultCard.classList.remove("hidden");
+      } catch (err) {
+        alert("Failed to fetch traffic data. Please try again.");
+        console.error(err);
+        loading.classList.add("hidden");
+      }
+    });
+  </script>
+</body>
+</html>
